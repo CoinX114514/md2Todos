@@ -1,21 +1,21 @@
 package com.mdtotodos.model;
 
-import java.io.BufferedReader;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Markdown解析器，用于从Markdown文件中提取待办事项
+ * DOCX解析器，用于从Word文档中提取待办事项
  */
-public class MarkdownParser implements DocumentParser {
+public class DocxParser implements DocumentParser {
     // 任务基本格式的正则表达式: "数字. 任务内容"
     private static final Pattern TASK_PATTERN = Pattern.compile("^\\s*(\\d+)\\.\\s+(.+)$");
     
@@ -28,9 +28,9 @@ public class MarkdownParser implements DocumentParser {
             Pattern.compile("\\s*//\\s*(.*?)\\s*(?:" + DATE_PATTERN.pattern() + ")?$");
 
     /**
-     * 从Markdown文件中解析待办事项
+     * 从DOCX文件中解析待办事项
      * 
-     * @param file Markdown文件
+     * @param file DOCX文件
      * @return 解析出的任务列表
      * @throws IOException 如果读取文件出错
      */
@@ -38,15 +38,18 @@ public class MarkdownParser implements DocumentParser {
     public List<Task> parseTasks(File file) throws IOException {
         List<Task> tasks = new ArrayList<>();
         
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                // 跳过空行或标题行
-                if (line.trim().isEmpty() || line.trim().startsWith("#")) {
+        try (FileInputStream fis = new FileInputStream(file);
+             XWPFDocument document = new XWPFDocument(fis)) {
+            
+            for (XWPFParagraph paragraph : document.getParagraphs()) {
+                String text = paragraph.getText();
+                
+                // 跳过空行或标题样式
+                if (text == null || text.trim().isEmpty() || isHeadingStyle(paragraph)) {
                     continue;
                 }
                 
-                Task task = parseTaskLine(line);
+                Task task = parseTaskLine(text);
                 if (task != null) {
                     tasks.add(task);
                 }
@@ -63,7 +66,33 @@ public class MarkdownParser implements DocumentParser {
      */
     @Override
     public String[] getSupportedExtensions() {
-        return new String[] {"md", "txt", "markdown"};
+        return new String[] {"docx"};
+    }
+    
+    /**
+     * 判断段落是否为标题样式
+     * 
+     * @param paragraph 段落
+     * @return 如果是标题样式则返回true
+     */
+    private boolean isHeadingStyle(XWPFParagraph paragraph) {
+        // 获取段落的样式名称
+        String styleName = paragraph.getStyle();
+        
+        // 检查是否是标题样式
+        if (styleName != null) {
+            return styleName.toLowerCase().contains("heading") || 
+                   styleName.toLowerCase().contains("title");
+        }
+        
+        // 另一种判断方法：检查段落的大小
+        if (paragraph.getRuns().size() > 0) {
+            int fontSize = paragraph.getRuns().get(0).getFontSize();
+            // 通常标题字体更大
+            return fontSize > 14;
+        }
+        
+        return false;
     }
 
     /**
@@ -134,7 +163,7 @@ public class MarkdownParser implements DocumentParser {
                 
                 return LocalDateTime.of(year, month, day, hour, 0);
             }
-        } catch (DateTimeParseException | NumberFormatException e) {
+        } catch (Exception e) {
             // 解析失败，返回null
         }
         

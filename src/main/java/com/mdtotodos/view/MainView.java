@@ -156,8 +156,24 @@ public class MainView extends JFrame {
         // 浏览输入文件按钮
         browseInputButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setDialogTitle("选择Markdown文件");
-            fileChooser.setFileFilter(new FileNameExtensionFilter("Markdown文件", "md", "txt"));
+            fileChooser.setDialogTitle("选择文档文件");
+            
+            // 获取支持的文件扩展名
+            String[] supportedExtensions = controller.getSupportedFileExtensions();
+            
+            // 创建文件过滤器
+            StringBuilder description = new StringBuilder("支持的文档文件 (");
+            for (int i = 0; i < supportedExtensions.length; i++) {
+                if (i > 0) {
+                    description.append(", ");
+                }
+                description.append("*.").append(supportedExtensions[i]);
+            }
+            description.append(")");
+            
+            FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                    description.toString(), supportedExtensions);
+            fileChooser.setFileFilter(filter);
             
             int result = fileChooser.showOpenDialog(this);
             if (result == JFileChooser.APPROVE_OPTION) {

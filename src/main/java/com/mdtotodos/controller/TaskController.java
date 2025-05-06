@@ -1,6 +1,7 @@
 package com.mdtotodos.controller;
 
-import com.mdtotodos.model.MarkdownParser;
+import com.mdtotodos.model.DocumentParser;
+import com.mdtotodos.model.DocumentParserFactory;
 import com.mdtotodos.model.Task;
 import com.mdtotodos.model.TaskExporter;
 import com.mdtotodos.model.TaskExporter.ExportPlatform;
@@ -13,7 +14,6 @@ import java.util.List;
  * 任务控制器，负责协调模型和视图之间的交互
  */
 public class TaskController {
-    private final MarkdownParser parser;
     private final TaskExporter exporter;
     private List<Task> currentTasks;
     
@@ -21,14 +21,13 @@ public class TaskController {
      * 创建一个新的任务控制器
      */
     public TaskController() {
-        this.parser = new MarkdownParser();
         this.exporter = new TaskExporter();
     }
     
     /**
-     * 加载并解析Markdown文件中的任务
+     * 加载并解析文档中的任务
      * 
-     * @param file Markdown文件
+     * @param file 文档文件 (支持.md, .txt, .docx)
      * @return 成功解析的任务数量
      * @throws IOException 如果读取文件出错
      */
@@ -37,8 +36,28 @@ public class TaskController {
             throw new IOException("文件不存在或无效");
         }
         
+        DocumentParser parser = DocumentParserFactory.getParserForFile(file);
+        if (parser == null) {
+            throw new IOException("不支持的文件格式: " + getFileExtension(file));
+        }
+        
         currentTasks = parser.parseTasks(file);
         return currentTasks.size();
+    }
+    
+    /**
+     * 获取文件扩展名
+     * 
+     * @param file 文件
+     * @return 文件扩展名，不含点
+     */
+    private String getFileExtension(File file) {
+        String name = file.getName();
+        int lastDotIndex = name.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+            return name.substring(lastDotIndex + 1);
+        }
+        return "";
     }
     
     /**
@@ -66,6 +85,15 @@ public class TaskController {
         }
         
         exporter.exportToICS(currentTasks, outputFile);
+    }
+    
+    /**
+     * 获取所有支持的文件扩展名
+     * 
+     * @return 支持的文件扩展名数组
+     */
+    public String[] getSupportedFileExtensions() {
+        return DocumentParserFactory.getAllSupportedExtensions();
     }
     
     /**

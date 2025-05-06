@@ -58,7 +58,7 @@ public class MarkdownTodosApp {
                 listOnly = true;
             } else if (args[i].equals("--help")) {
                 // 显示帮助
-                printHelp();
+                showHelp();
                 return;
             }
         }
@@ -66,7 +66,7 @@ public class MarkdownTodosApp {
         // 验证输入文件
         if (inputFile == null) {
             System.err.println("错误: 必须指定输入文件");
-            printHelp();
+            showHelp();
             System.exit(1);
         }
         
@@ -135,19 +135,23 @@ public class MarkdownTodosApp {
     }
     
     /**
-     * 打印帮助信息
+     * 显示帮助信息
      */
-    private static void printHelp() {
-        System.out.println("Markdown待办事项导入器");
-        System.out.println("用法: java -jar mdtotodos.jar input.md [选项]");
+    private static void showHelp() {
+        System.out.println("Markdown待办事项导入器 - ICS版本");
+        System.out.println("用法: java -jar mdtotodos.jar <input-file> [options]");
+        System.out.println();
+        System.out.println("参数:");
+        System.out.println("  <input-file>             输入文件 (.md, .txt, .docx)");
         System.out.println();
         System.out.println("选项:");
-        System.out.println("  --output <file>        指定输出ICS文件 (默认为tasks.ics)");
-        System.out.println("  --list                 仅列出任务，不导出");
-        System.out.println("  --help                 显示此帮助信息");
+        System.out.println("  --output <file>          指定输出ICS文件 (默认: tasks.ics)");
+        System.out.println("  --list                   仅列出任务，不导出");
+        System.out.println("  --help                   显示此帮助信息");
         System.out.println();
         System.out.println("示例:");
-        System.out.println("  java -jar mdtotodos.jar example.md --output calendar.ics");
-        System.out.println("  java -jar mdtotodos.jar example.md --list");
+        System.out.println("  java -jar mdtotodos.jar tasks.md --output calendar.ics");
+        System.out.println("  java -jar mdtotodos.jar tasks.docx --output calendar.ics");
+        System.out.println("  java -jar mdtotodos.jar tasks.md --list");
     }
 } 

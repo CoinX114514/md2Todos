@@ -1,10 +1,10 @@
 # Markdown待办事项导入器 (ICS日历版)
 
-这是一个使用Java MVC模式开发的跨平台工具，可以将Markdown文件中的待办事项导出为ICS日历文件，方便导入到各种日历应用中。支持Windows、macOS和Linux系统。
+这是一个使用Java MVC模式开发的跨平台工具，可以将Markdown或Word文档中的待办事项导出为ICS日历文件，方便导入到各种日历应用中。支持Windows、macOS和Linux系统。
 
 ## 📋 功能特点
 
-- 从Markdown文件中提取待办事项
+- 从Markdown文件或Word文档(.docx)中提取待办事项
 - 支持任务标题、描述和截止日期
 - 跨平台支持 (Windows, macOS, Linux)
 - 提供命令行和图形用户界面
@@ -41,7 +41,7 @@ java -jar target/mdtotodos-1.0.0.jar
 ```
 
 GUI界面使用步骤:
-1. 点击"浏览..."选择Markdown文件
+1. 点击"浏览..."选择文档文件 (支持.md, .txt, .markdown, .docx)
 2. 设置ICS输出文件路径
 3. 点击"预览任务"查看解析结果
 4. 点击"导出到ICS"完成导出
@@ -52,6 +52,12 @@ GUI界面使用步骤:
 
 ```bash
 java -jar target/mdtotodos-1.0.0.jar input.md [选项]
+```
+
+或者对于Word文档:
+
+```bash
+java -jar target/mdtotodos-1.0.0.jar input.docx [选项]
 ```
 
 ### 命令行选项:
@@ -65,16 +71,19 @@ java -jar target/mdtotodos-1.0.0.jar input.md [选项]
 ### 命令行示例:
 
 ```bash
-# 导出到ICS日历文件
+# 导出Markdown文件到ICS日历文件
 java -jar target/mdtotodos-1.0.0.jar example.md --output calendar.ics
+
+# 导出Word文档到ICS日历文件
+java -jar target/mdtotodos-1.0.0.jar example.docx --output calendar.ics
 
 # 仅列出解析出的任务，不导出
 java -jar target/mdtotodos-1.0.0.jar example.md --list
 ```
 
-## ✍️ Markdown格式说明
+## ✍️ 任务格式说明
 
-您的Markdown文件应按照以下格式编写待办事项：
+您的文档应按照以下格式编写待办事项：
 
 ```
 1. 任务标题 // 可选的任务描述 YYYY/MM/DD-HHam/pm
@@ -95,9 +104,12 @@ java -jar target/mdtotodos-1.0.0.jar example.md --list
 - **任务描述**：可选，使用 `//` 分隔后添加，将显示在任务的备注中
 - **截止日期**：可选，格式为 `YYYY/MM/DD-HHam/pm`（如 `2024/11/22-3pm`）
 
-## 📝 示例文件
+## 📝 支持的文件格式
 
-参见 `example.md` 文件作为参考模板。
+应用程序支持以下文件格式：
+
+1. **Markdown文件**：.md, .markdown, .txt
+2. **Word文档**：.docx
 
 ## 📅 关于ICS日历文件
 
@@ -111,7 +123,7 @@ ICS（iCalendar）是一种标准的日历文件格式，被广泛应用于各�
 - 轻松与他人共享任务列表
 
 使用方法：
-1. 将Markdown任务导出为ICS文件
+1. 将文档中的任务导出为ICS文件
 2. 在日历应用中选择"导入"或"添加日历"
 3. 选择生成的ICS文件
 4. 任务将作为待办事项或事件显示在您的日历中
@@ -125,7 +137,7 @@ ICS（iCalendar）是一种标准的日历文件格式，被广泛应用于各�
 
 | 组件 | 主要类 |
 |------|--------|
-| Model | `Task`, `MarkdownParser`, `TaskExporter` |
+| Model | `Task`, `DocumentParser`, `MarkdownParser`, `DocxParser`, `TaskExporter` |
 | View | `MainView` |
 | Controller | `TaskController` |
 | 应用入口 | `MarkdownTodosApp` |
@@ -134,10 +146,11 @@ ICS（iCalendar）是一种标准的日历文件格式，被广泛应用于各�
 
 如果在使用过程中遇到问题：
 
-1. **确保格式正确**：检查您的Markdown文件是否按照正确的格式编写
+1. **确保格式正确**：检查您的文档是否按照正确的格式编写
 2. **检查Java版本**：确保使用Java 8或更高版本
 3. **构建问题**：如果构建失败，确保Maven安装正确且版本满足要求
-4. **ICS导出问题**：如果导入日历应用时出现格式错误，请检查任务的截止日期格式是否正确
+4. **文件解析问题**：如果解析失败，请检查文件格式是否正确
+5. **ICS导出问题**：如果导入日历应用时出现格式错误，请检查任务的截止日期格式是否正确
 
 ## 📜 许可证
 
