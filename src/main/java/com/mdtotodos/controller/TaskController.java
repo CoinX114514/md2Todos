@@ -51,63 +51,29 @@ public class TaskController {
     }
     
     /**
-     * 导出任务到指定平台
+     * 导出任务到ICS文件
      * 
-     * @param platform 导出平台类型
-     * @param outputFile 输出文件（仅用于CSV和JSON导出）
+     * @param outputFile 输出文件
      * @throws IOException 如果导出过程出错
-     * @throws UnsupportedOperationException 如果选择的平台功能尚未实现
      */
-    public void exportTasks(ExportPlatform platform, File outputFile) throws IOException, UnsupportedOperationException {
+    public void exportTasksToICS(File outputFile) throws IOException {
         if (currentTasks == null || currentTasks.isEmpty()) {
             throw new IllegalStateException("没有可导出的任务");
         }
         
-        switch (platform) {
-            case CSV:
-                if (outputFile == null) {
-                    throw new IllegalArgumentException("导出CSV时必须指定输出文件");
-                }
-                exporter.exportToCSV(currentTasks, outputFile);
-                break;
-                
-            case JSON:
-                if (outputFile == null) {
-                    throw new IllegalArgumentException("导出JSON时必须指定输出文件");
-                }
-                exporter.exportToJSON(currentTasks, outputFile);
-                break;
-                
-            case APPLE_REMINDERS:
-                exporter.exportToAppleReminders(currentTasks);
-                break;
-                
-            case MICROSOFT_TODO:
-                exporter.exportToMicrosoftToDo(currentTasks);
-                break;
-                
-            case GOOGLE_TASKS:
-                exporter.exportToGoogleTasks(currentTasks);
-                break;
-                
-            default:
-                throw new UnsupportedOperationException("不支持的导出平台");
+        if (outputFile == null) {
+            throw new IllegalArgumentException("导出ICS时必须指定输出文件");
         }
+        
+        exporter.exportToICS(currentTasks, outputFile);
     }
     
     /**
-     * 检查当前系统是否支持特定的导出平台
+     * 检查平台是否支持
      * 
-     * @param platform 要检查的平台
-     * @return 如果支持返回true
+     * @return 始终返回true，因为ICS在所有平台上都支持
      */
-    public boolean isPlatformSupported(ExportPlatform platform) {
-        if (platform == ExportPlatform.APPLE_REMINDERS) {
-            String os = System.getProperty("os.name").toLowerCase();
-            return os.contains("mac");
-        }
-        
-        // CSV和JSON在所有平台上都支持
-        return platform == ExportPlatform.CSV || platform == ExportPlatform.JSON;
+    public boolean isPlatformSupported() {
+        return true;
     }
 } 

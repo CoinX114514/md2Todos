@@ -2,7 +2,6 @@ package com.mdtotodos.app;
 
 import com.mdtotodos.controller.TaskController;
 import com.mdtotodos.model.Task;
-import com.mdtotodos.model.TaskExporter.ExportPlatform;
 import com.mdtotodos.view.MainView;
 
 import java.io.File;
@@ -45,17 +44,12 @@ public class MarkdownTodosApp {
         // 参数解析
         String inputFile = null;
         String outputFile = null;
-        ExportPlatform platform = ExportPlatform.CSV; // 默认为CSV
         boolean listOnly = false;
         
         for (int i = 0; i < args.length; i++) {
             if (i == 0 && !args[i].startsWith("--")) {
                 // 第一个非选项参数视为输入文件
                 inputFile = args[i];
-            } else if (args[i].equals("--platform") && i + 1 < args.length) {
-                // 平台选项
-                String platformName = args[++i].toLowerCase();
-                platform = parsePlatform(platformName);
             } else if (args[i].equals("--output") && i + 1 < args.length) {
                 // 输出文件选项
                 outputFile = args[++i];
@@ -93,52 +87,20 @@ public class MarkdownTodosApp {
                 printTasks(controller.getCurrentTasks());
             } else {
                 // 导出任务
-                if ((platform == ExportPlatform.CSV || platform == ExportPlatform.JSON) && outputFile == null) {
-                    // 如果输出到文件但未指定文件名，使用默认文件名
-                    String extension = (platform == ExportPlatform.CSV) ? ".csv" : ".json";
-                    outputFile = "tasks" + extension;
+                if (outputFile == null) {
+                    // 如果未指定输出文件名，使用默认文件名
+                    outputFile = "tasks.ics";
                     System.out.println("未指定输出文件，将使用默认文件: " + outputFile);
                 }
                 
-                File output = (outputFile != null) ? new File(outputFile) : null;
-                controller.exportTasks(platform, output);
+                File output = new File(outputFile);
+                controller.exportTasksToICS(output);
                 
-                if (platform == ExportPlatform.CSV || platform == ExportPlatform.JSON) {
-                    System.out.println("成功导出任务到文件: " + outputFile);
-                } else {
-                    System.out.println("成功导出任务");
-                }
+                System.out.println("成功导出任务到文件: " + outputFile);
             }
         } catch (IOException e) {
             System.err.println("错误: " + e.getMessage());
             System.exit(1);
-        } catch (UnsupportedOperationException e) {
-            System.err.println("不支持的操作: " + e.getMessage());
-            System.exit(1);
-        }
-    }
-    
-    /**
-     * 解析平台名称
-     * 
-     * @param platformName 平台名称
-     * @return 对应的平台枚举值
-     */
-    private static ExportPlatform parsePlatform(String platformName) {
-        switch (platformName) {
-            case "csv":
-                return ExportPlatform.CSV;
-            case "json":
-                return ExportPlatform.JSON;
-            case "apple":
-                return ExportPlatform.APPLE_REMINDERS;
-            case "microsoft":
-                return ExportPlatform.MICROSOFT_TODO;
-            case "google":
-                return ExportPlatform.GOOGLE_TASKS;
-            default:
-                System.err.println("警告: 未知的平台 '" + platformName + "', 将使用默认平台 (CSV)");
-                return ExportPlatform.CSV;
         }
     }
     
@@ -180,14 +142,12 @@ public class MarkdownTodosApp {
         System.out.println("用法: java -jar mdtotodos.jar input.md [选项]");
         System.out.println();
         System.out.println("选项:");
-        System.out.println("  --platform <platform>  指定导出平台 (csv, json, apple, microsoft, google)");
-        System.out.println("  --output <file>        指定输出文件 (仅用于CSV和JSON导出)");
+        System.out.println("  --output <file>        指定输出ICS文件 (默认为tasks.ics)");
         System.out.println("  --list                 仅列出任务，不导出");
         System.out.println("  --help                 显示此帮助信息");
         System.out.println();
         System.out.println("示例:");
-        System.out.println("  java -jar mdtotodos.jar example.md --platform csv --output tasks.csv");
-        System.out.println("  java -jar mdtotodos.jar example.md --platform apple");
+        System.out.println("  java -jar mdtotodos.jar example.md --output calendar.ics");
         System.out.println("  java -jar mdtotodos.jar example.md --list");
     }
 } 

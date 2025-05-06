@@ -2,7 +2,6 @@ package com.mdtotodos.view;
 
 import com.mdtotodos.controller.TaskController;
 import com.mdtotodos.model.Task;
-import com.mdtotodos.model.TaskExporter.ExportPlatform;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -30,24 +29,13 @@ public class MainView extends JFrame {
     // UI组件
     private JTextField inputFilePathField;
     private JTextField outputFilePathField;
-    private JComboBox<String> platformComboBox;
     private JTextArea previewTextArea;
     private JTextArea logTextArea;
-    private JPanel outputFilePanel;
     private JButton browseInputButton;
     private JButton browseOutputButton;
     private JButton previewButton;
     private JButton exportButton;
-    
-    // 导出平台名称和对应的枚举值
-    private final String[] platformNames = {
-            "CSV文件", "JSON文件", "Apple提醒事项 (仅限macOS)", 
-            "Microsoft To Do", "Google Tasks"
-    };
-    private final ExportPlatform[] platformValues = {
-            ExportPlatform.CSV, ExportPlatform.JSON, ExportPlatform.APPLE_REMINDERS,
-            ExportPlatform.MICROSOFT_TODO, ExportPlatform.GOOGLE_TASKS
-    };
+    private JButton exitButton;
     
     /**
      * 创建主视图
@@ -55,14 +43,13 @@ public class MainView extends JFrame {
     public MainView() {
         controller = new TaskController();
         initializeUI();
-        setupPlatformOptions();
     }
     
     /**
      * 初始化用户界面
      */
     private void initializeUI() {
-        setTitle("Markdown待办事项导入器");
+        setTitle("Markdown待办事项导入器 - ICS版");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 800, 600);
         setMinimumSize(new Dimension(600, 500));
@@ -73,7 +60,7 @@ public class MainView extends JFrame {
         setContentPane(contentPane);
         
         // 创建标题标签
-        JLabel titleLabel = new JLabel("Markdown待办事项导入器");
+        JLabel titleLabel = new JLabel("Markdown待办事项导入器 - ICS日历版");
         titleLabel.setFont(new Font("Dialog", Font.BOLD, 18));
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         contentPane.add(titleLabel, BorderLayout.NORTH);
@@ -99,21 +86,9 @@ public class MainView extends JFrame {
         mainPanel.add(inputFilePanel);
         mainPanel.add(Box.createVerticalStrut(10));
         
-        // 导出平台选择面板
-        JPanel platformPanel = new JPanel();
-        platformPanel.setBorder(new TitledBorder("选择导出平台"));
-        platformPanel.setLayout(new BoxLayout(platformPanel, BoxLayout.X_AXIS));
-        platformPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
-        
-        platformComboBox = new JComboBox<>(platformNames);
-        platformPanel.add(platformComboBox);
-        
-        mainPanel.add(platformPanel);
-        mainPanel.add(Box.createVerticalStrut(10));
-        
         // 输出文件选择面板
-        outputFilePanel = new JPanel();
-        outputFilePanel.setBorder(new TitledBorder("输出文件"));
+        JPanel outputFilePanel = new JPanel();
+        outputFilePanel.setBorder(new TitledBorder("输出ICS文件"));
         outputFilePanel.setLayout(new BoxLayout(outputFilePanel, BoxLayout.X_AXIS));
         outputFilePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
         
@@ -159,8 +134,8 @@ public class MainView extends JFrame {
         contentPane.add(buttonPanel, BorderLayout.SOUTH);
         
         previewButton = new JButton("预览任务");
-        exportButton = new JButton("导出任务");
-        JButton exitButton = new JButton("退出");
+        exportButton = new JButton("导出到ICS");
+        exitButton = new JButton("退出");
         
         buttonPanel.add(previewButton);
         buttonPanel.add(exportButton);
@@ -168,47 +143,10 @@ public class MainView extends JFrame {
         
         // 设置事件监听器
         setupEventListeners();
-    }
-    
-    /**
-     * 设置平台选择选项
-     */
-    private void setupPlatformOptions() {
-        // 根据当前操作系统禁用不支持的选项
-        for (int i = 0; i < platformValues.length; i++) {
-            if (!controller.isPlatformSupported(platformValues[i])) {
-                platformComboBox.setEnabled(false);
-            }
-        }
-        
-        // 默认选择CSV
-        platformComboBox.setSelectedIndex(0);
-        updateUIForPlatform();
-        
-        // 添加平台选择变更监听器
-        platformComboBox.addActionListener(e -> updateUIForPlatform());
-    }
-    
-    /**
-     * 根据所选平台更新UI
-     */
-    private void updateUIForPlatform() {
-        int selectedIndex = platformComboBox.getSelectedIndex();
-        ExportPlatform platform = platformValues[selectedIndex];
-        
-        // 仅对CSV和JSON导出显示输出文件选择
-        boolean showOutputPanel = platform == ExportPlatform.CSV || platform == ExportPlatform.JSON;
-        outputFilePanel.setVisible(showOutputPanel);
         
         // 设置默认输出文件名
-        if (showOutputPanel) {
-            String extension = platform == ExportPlatform.CSV ? ".csv" : ".json";
-            String defaultPath = System.getProperty("user.dir") + File.separator + "tasks" + extension;
-            outputFilePathField.setText(defaultPath);
-        }
-        
-        revalidate();
-        repaint();
+        String defaultPath = System.getProperty("user.dir") + File.separator + "tasks.ics";
+        outputFilePathField.setText(defaultPath);
     }
     
     /**
@@ -232,22 +170,22 @@ public class MainView extends JFrame {
         // 浏览输出文件按钮
         browseOutputButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setDialogTitle("保存文件");
-            
-            int platformIndex = platformComboBox.getSelectedIndex();
-            if (platformIndex == 0) { // CSV
-                fileChooser.setFileFilter(new FileNameExtensionFilter("CSV文件", "csv"));
-                fileChooser.setSelectedFile(new File("tasks.csv"));
-            } else if (platformIndex == 1) { // JSON
-                fileChooser.setFileFilter(new FileNameExtensionFilter("JSON文件", "json"));
-                fileChooser.setSelectedFile(new File("tasks.json"));
-            }
+            fileChooser.setDialogTitle("保存ICS文件");
+            fileChooser.setFileFilter(new FileNameExtensionFilter("ICS日历文件", "ics"));
+            fileChooser.setSelectedFile(new File("tasks.ics"));
             
             int result = fileChooser.showSaveDialog(this);
             if (result == JFileChooser.APPROVE_OPTION) {
                 File selectedFile = fileChooser.getSelectedFile();
-                outputFilePathField.setText(selectedFile.getAbsolutePath());
-                log("将保存到: " + selectedFile.getAbsolutePath());
+                
+                // 确保文件扩展名为.ics
+                String path = selectedFile.getAbsolutePath();
+                if (!path.toLowerCase().endsWith(".ics")) {
+                    path += ".ics";
+                }
+                
+                outputFilePathField.setText(path);
+                log("将保存到: " + path);
             }
         });
         
@@ -256,6 +194,9 @@ public class MainView extends JFrame {
         
         // 导出按钮
         exportButton.addActionListener(e -> exportTasks());
+        
+        // 退出按钮
+        exitButton.addActionListener(e -> System.exit(0));
     }
     
     /**
@@ -316,7 +257,7 @@ public class MainView extends JFrame {
     }
     
     /**
-     * 导出任务
+     * 导出任务到ICS文件
      */
     private void exportTasks() {
         // 如果没有任务，先尝试加载
@@ -329,33 +270,20 @@ public class MainView extends JFrame {
             }
         }
         
-        // 获取选择的平台
-        int platformIndex = platformComboBox.getSelectedIndex();
-        ExportPlatform platform = platformValues[platformIndex];
+        String outputPath = outputFilePathField.getText().trim();
+        if (outputPath.isEmpty()) {
+            showError("请指定输出文件路径");
+            return;
+        }
         
         try {
-            if (platform == ExportPlatform.CSV || platform == ExportPlatform.JSON) {
-                String outputPath = outputFilePathField.getText().trim();
-                if (outputPath.isEmpty()) {
-                    showError("请指定输出文件路径");
-                    return;
-                }
-                
-                File outputFile = new File(outputPath);
-                controller.exportTasks(platform, outputFile);
-                log("成功导出任务到 " + outputPath);
-                showSuccess("成功导出到" + (platform == ExportPlatform.CSV ? "CSV" : "JSON") + "文件:\n" + outputPath);
-            } else {
-                controller.exportTasks(platform, null);
-                log("成功导出任务到 " + platformNames[platformIndex]);
-                showSuccess("成功导出到" + platformNames[platformIndex]);
-            }
+            File outputFile = new File(outputPath);
+            controller.exportTasksToICS(outputFile);
+            log("成功导出任务到 " + outputPath);
+            showSuccess("成功导出到ICS日历文件:\n" + outputPath);
         } catch (IOException ex) {
             showError("导出时出错: " + ex.getMessage());
             log("错误: " + ex.getMessage());
-        } catch (UnsupportedOperationException ex) {
-            showInfo(platformNames[platformIndex] + "功能需要额外配置", ex.getMessage());
-            log(ex.getMessage());
         }
     }
     
@@ -385,16 +313,6 @@ public class MainView extends JFrame {
      */
     private void showSuccess(String message) {
         JOptionPane.showMessageDialog(this, message, "成功", JOptionPane.INFORMATION_MESSAGE);
-    }
-    
-    /**
-     * 显示信息对话框
-     * 
-     * @param title 标题
-     * @param message 信息消息
-     */
-    private void showInfo(String title, String message) {
-        JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
     }
     
     /**
