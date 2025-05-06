@@ -1,0 +1,20 @@
+# 基本依赖
+argparse
+datetime
+typing
+
+# GUI依赖
+# tkinter已内置在Python标准库中，通常不需要单独安装
+
+# macOS特定依赖 (可选，仅在macOS系统上使用Apple提醒事项功能时需要)
+# pyobjc ; sys_platform == 'darwin'
+# pyobjc-framework-EventKit ; sys_platform == 'darwin'
+
+# Microsoft To Do集成依赖 (可选，用于Microsoft To Do导出)
+# msal
+# requests
+
+# Google Tasks集成依赖 (可选，用于Google Tasks导出)
+# google-api-python-client
+# google-auth-httplib2
+# google-auth-oauthlib 
